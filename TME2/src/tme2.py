@@ -4,18 +4,30 @@ import matplotlib.pyplot as plt
 from mltools import plot_data, plot_frontiere, make_grid, gen_arti
 
 def mse(w,x,y):
-    # a implémenter
-    pass
+    return (y-np.dot(x,w))**2
 
 def mse_grad(w,x,y):
     # a implémenter
-    pass
+    return 2*x*(-y+np.dot(x,w))
 def reglog(w,x,y):
     #a implémenter
-    pass
+    return np.log(1 + np.exp(-y*(x@w)) )
 def reglog_grad(w,x,y):
     #a implémenter
-    pass
+    return (-y * x) / (1 + np.exp(y * (x@w)))
+
+def descente_gradient(datax, datay, f_loss, f_grad, eps, iter):
+    w = np.random.randn(datax.shape[1],1)
+    all_w = [w]
+    loss = [f_loss(w, datax, datay).mean()]
+
+    for _ in range(iter):
+        w -= eps * f_grad(w, datax, datay).mean(0).reshape(-1,1)
+        all_w.append(w)
+        loss.append(f_loss(w, datax, datay).mean())
+    
+    return w, all_w, loss
+
 
 def check_fonctions():
     ## On fixe la seed de l'aléatoire pour vérifier les fonctions
