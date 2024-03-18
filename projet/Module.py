@@ -33,3 +33,5 @@ class Module(object):
     def backward_delta(self, input, delta):
         ## Calcul la derivee de l'erreur
         pass
+
+
