@@ -1,34 +1,80 @@
 from Module import *
+import numpy as np
 
 class Linear(Module):
-    def __init__(self,input_size,output_size):
+    r"""Linear module.
+
+    Parameters
+    ----------
+        input_size : int
+            Size of input sample.
+        output_size : int
+            Size of output sample.
+        bias : bool, optional, default=False
+            If True, adds a learnable bias to the output.
+        init_type : str, optional, default="normal"
+            Change the initialization of parameters.
+
+    Shape
+    -----
+    - Input : ndarray (batch, input_size)
+    - Output : ndarray (batch, output_size)
+    - Weight : ndarray (input_size, output_size)
+    - Bias : ndarray (1, output_size)
+    """
+
+    def __init__(self,input_size,output_size,bias= True):
+        #super().__init__()
+        self._parameters={}
+        self._gradient={}
         self.input_size = input_size
         self.output_size = output_size
-        self._parameters = np.random.randn(self.input_size, self.output_size)
+        self.include_bias = bias
 
-    def zero_grad(self):
-        ## Annule gradient
-        self._gradient= np.zeros((self.input_size, self.output_size))
-        #pass
+        self._parameters["weight"] = np.random.uniform(0.0, 1.0, (self.input_size, self.output_size))
+
+
+        self._gradient["weight"] = np.zeros_like(self._parameters["weight"])
+
+        if self.include_bias:
+            self._parameters["bias"] = np.random.uniform(0.0, 1.0, (1, self.output_size))
+            self._gradient["bias"] = np.zeros_like(self._parameters["bias"])
 
     def forward(self, X):
-        """X@w=(batch_size,input_size)@(input_size,output_size)=(batch,output_size)"""
-        ## Calcule la passe forward
-        assert(X.shape[1]==self.input_size), "Le dimension de X doit être (batch_size,input_size)"
-        self.output=np.dot(X, self._parameters)
-        return self.output  
-        #pass
 
-    def update_parameters(self, gradient_step=1e-3):
-        ## Calcule la mise a jour des parametres selon le gradient calcule et le pas de gradient_step
-        self._parameters -= gradient_step*self._gradient
+        assert X.shape[1] == self.input_size,"X doit être of shape (batch_size, input_size)"
+        
+
+        self.output = X @ self._parameters["weight"]
+
+        if self.include_bias:
+            self.output += self._parameters["bias"]
+
+        return self.output
 
     def backward_update_gradient(self, input, delta):
-        ## Met a jour la valeur du gradient
+        assert input.shape[1] == self.input_size
+        assert delta.shape[1] == self.output_size
 
-        
-        pass
+        # delta : ndarray (output_size, input_size)
+        self._gradient["weight"] += input.T @ delta  # (output_size, batch)
+        if self.include_bias:
+            self._gradient["bias"] += delta.sum(axis=0)
 
     def backward_delta(self, input, delta):
-        ## Calcul la derivee de l'erreur
-        pass
+        assert input.shape[1] == self.input_size
+        assert delta.shape[1] == self.output_size
+
+        # delta : ndarray (output_size, input_size)
+        self.d_out = delta @ self._parameters["weight"].T
+        return self.d_out
+
+    def zero_grad(self):
+        self._gradient["weight"] = np.zeros((self.input_size, self.output_size))
+        if self.include_bias:
+            self._gradient["bias"] = np.zeros((1, self.output_size))
+
+    def update_parameters(self, learning_rate=0.001):
+        self._parameters["weight"] -= learning_rate * self._gradient["weight"]
+        if self.include_bias:
+            self._parameters["bias"] -= learning_rate * self._gradient["bias"]
