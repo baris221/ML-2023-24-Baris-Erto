@@ -1,8 +1,8 @@
 from Module import *
 
 class Tanh(Module):
-    def __init__():
-        super.__init__()
+    def __init__(self):
+        super().__init__()
     def forward(self, X):
         return np.tanh(X)
 
@@ -13,14 +13,15 @@ class Tanh(Module):
         pass  # No gradient to update in TanH
 
     def backward_delta(self, input, delta):
-        return delta * (1 - self(input) ** 2)
+        tanx=self.forward(input)
+        return delta * (1 -tanx ** 2)
 
     def update_parameters(self, learning_rate):
         pass  # No parameters to update in TanH
 
 class Sigmode(Module):
-    def __init__():
-        super.__init__()
+    def __init__(self):
+        super().__init__()
     def forward(self, X):
         return 1 / (1 + np.exp(-X))
     
@@ -31,7 +32,7 @@ class Sigmode(Module):
         pass  # No gradient to update in Sigmoid
 
     def backward_delta(self, input, delta):
-        sig_X = self(input)
+        sig_X = self.forward(input)
         return delta * sig_X * (1 - sig_X)
 
     def update_parameters(self, learning_rate):
