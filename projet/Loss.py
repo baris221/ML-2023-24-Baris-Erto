@@ -11,3 +11,13 @@ class MseLoss(Loss):
     def backward(self, y, yhat):
         return -2 * (y - yhat)
         #pass
+    
+class CrossEntropyLoss(Loss):
+    def __init__(self):
+        super().__init__()
+        
+    def forward(self, y, yhat):
+        return 1 -(y*yhat).sum(axis=1)
+    
+    def backward(self, y, yhat):
+        return yhat-y
