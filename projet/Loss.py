@@ -17,7 +17,19 @@ class CrossEntropyLoss(Loss):
         super().__init__()
         
     def forward(self, y, yhat):
-        return 1 -(y*yhat).sum(axis=1)
+        return 1 -(y*yhat).sum()
     
     def backward(self, y, yhat):
         return yhat-y
+    
+class BCELoss(Loss):
+    def __init__(self) -> None:
+        super().__init__()
+    
+    def forward(self, y, yhat):
+        return -np.mean(
+            y * np.log(np.clip(yhat, 1e-10, 1))
+            + (1 - y) * np.log(np.clip(1 - yhat, 1e-10, 1))
+        )
+    def backward(self, y, yhat):
+        return -(y / np.clip(yhat, 1e-10, 1) - (1 - y) / np.clip(1 - yhat, 1e-10, 1))
