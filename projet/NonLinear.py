@@ -69,3 +69,23 @@ class LogSoftmax(Module):
         return delta - softmax * np.sum(delta, axis=-1, keepdims=True)
     def update_parameters(self, learning_rate):
         pass  # No parameters to update in LogSoftmax
+
+class ReLU(Module):
+
+    def __init__(self):
+        super().__init__()
+
+    def zero_grad(self):
+        pass
+
+    def forward(self, X):
+        return np.maximum(0, X)
+
+    def backward_update_gradient(self, input, delta):
+        pass  # No gradient to update in ReLU
+
+    def backward_delta(self, input, delta):
+        return delta * (input > 0)
+
+    def update_parameters(self, learning_rate):
+        pass  # No parameters to update in ReLU
