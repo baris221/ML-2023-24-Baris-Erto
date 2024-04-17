@@ -64,15 +64,13 @@ class Optim:
     def create_batches(self, X, y, batch_size):
         n_samples = X.shape[0]
         indices = np.random.permutation(n_samples)
-        X = X[indices]
-        y = y[indices]
-        batch_list=[]
-        for X_batch, y_batch in zip(
-            np.array_split(X, n_samples / batch_size),
-            np.array_split(y, n_samples / batch_size),
-        ):
+        X_shuffled = X[indices]
+        y_shuffled = y[indices]
+        batch_list = []
+        for i in range(0, n_samples, batch_size):
+            X_batch = X_shuffled[i:i+batch_size]
+            y_batch = y_shuffled[i:i+batch_size]
             batch_list.append((X_batch, y_batch))
-
         return batch_list
     
     def step(self, batch_x, batch_y):

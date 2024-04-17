@@ -23,7 +23,7 @@ class CrossEntropyLoss(Loss):
         return yhat-y
     
 class BCELoss(Loss):
-    def __init__(self) -> None:
+    def __init__(self):
         super().__init__()
     
     def forward(self, y, yhat):
