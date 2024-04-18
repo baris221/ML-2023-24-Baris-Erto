@@ -94,7 +94,7 @@ class Optim:
         for _ in range(nb_iter):
             loss_epoch_i=0
             for  (batch_x, batch_y) in self.create_batches(X, Y, batch_size):
-                batch_y=batch_y[:,np.newaxis]
+                #batch_y=batch_y[:,np.newaxis]
                 loss_epoch_i+=self.step(batch_x, batch_y).sum()
             losses.append(loss_epoch_i/len(Y))       
         return losses
