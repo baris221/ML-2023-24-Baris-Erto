@@ -12,7 +12,10 @@ class Conv1D(Module):
         self.include_bias = bias
         self._parameters={}
         self._gradient={}
-        self._parameters["weight"] = np.random.uniform(0.0, 1.0, (self.k_size, self.chan_in, self.chan_out))
+        std_dev =np.sqrt(2 / (self.chan_in + self.chan_out))
+        self._parameters["weight"] = self._parameters["weight"] = np.random.normal(
+                0, std_dev, (self.k_size, self.chan_in, self.chan_out)
+            )
         self._gradient["weight"] = np.zeros_like(self._parameters["weight"])
         if  self.include_bias:
             self._parameters["bias"] = np.random.uniform(0.0, 1.0, (self.chan_out))

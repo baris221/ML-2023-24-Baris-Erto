@@ -31,13 +31,14 @@ class Linear(Module):
         self.output_size = output_size
         self.include_bias = bias
 
-        self._parameters["weight"] = np.random.uniform(0.0, 1.0, (self.input_size, self.output_size))
+        std_dev = np.sqrt(2 / self.input_size)
+        self._parameters["weight"] = np.random.normal(0, std_dev, (self.input_size, self.output_size))
 
 
         self._gradient["weight"] = np.zeros_like(self._parameters["weight"])
 
         if self.include_bias:
-            self._parameters["bias"] = np.random.uniform(0.0, 1.0, (1, self.output_size))
+            self._parameters["bias"] = np.random.uniform(0.0, std_dev, (1, self.output_size))
             self._gradient["bias"] = np.zeros_like(self._parameters["bias"])
 
     def forward(self, X):

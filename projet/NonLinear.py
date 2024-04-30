@@ -1,6 +1,6 @@
 from Module import *
 
-class Tanh(Module):
+class TanH(Module):
     def __init__(self):
         super().__init__()
     def forward(self, X):
@@ -19,7 +19,7 @@ class Tanh(Module):
     def update_parameters(self, learning_rate):
         pass  # No parameters to update in TanH
 
-class Sigmode(Module):
+class Sigmoid(Module):
     def __init__(self):
         super().__init__()
     def forward(self, X):
