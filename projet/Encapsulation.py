@@ -24,14 +24,8 @@ class Sequential:
         self.inputs = [input]
 
         for module in self.modules:
-            # print(f"[{module.__class__.__name__}] ➡️ Forward...")
-            # print(f"\tInput's shape : {input.shape}")
-
             input = module.forward(input)
             self.inputs.append(input)
-
-        # print(f"\tOutput's shape : {input.shape}")
-        # print(f"[{module.__class__.__name__}] ✅ Forward done!")
 
         return input
 
@@ -42,46 +36,24 @@ class Sequential:
         # print(f"\tDelta's (loss) shape : {delta.shape}")
 
         for i, module in enumerate(reversed(self.modules)):
-            # print(f"[{module.__class__.__name__}] ➡️ Backward...")
-            # print(f"\tDelta's shape : {delta.shape}")
-            # print(f"\tInput's shape : {self.inputs[i+1].shape}")
 
             module.backward_update_gradient(self.inputs[i + 1], delta)
 
-            # if hasattr(module, "_parameters") and "weight" in module._parameters:
-            # print(f"\tParamètres {module._parameters['weight']}")
-            # if hasattr(module, "_gradient") and "weight" in module._gradient:
-            # print(f"\tGradient {module._gradient['weight']}")
-
             delta = module.backward_delta(self.inputs[i + 1], delta)
-
-            # print(f"[{module.__class__.__name__}] ✅ Backward done!")
 
         return delta
 
     def update_parameters(self, eps=1e-3):
         for module in self.modules:
-            # print(f"[{module.__class__.__name__}] ➡️ Updating parameters...")
 
-            # if hasattr(module, "_parameters") and "weight" in module._parameters:
-            # print(f"\tParamètres {module._parameters['weight']}")
-            # if hasattr(module, "_gradient") and "weight" in module._gradient:
-            # print(f"\tGradient {module._gradient['weight']}")
 
             module.update_parameters(learning_rate=eps)
-
-            # print(f"[{module.__class__.__name__}] Parameters updated! ✅")
-
-            # if hasattr(module, "_parameters") and "weight" in module._parameters:
-            # print(f"\tParamètres {module._parameters['weight']}")
-            # if hasattr(module, "_gradient") and "weight" in module._gradient:
-            # print(f"\tGradient {module._gradient['weight']}")
 
     def zero_grad(self):
         for module in self.modules:
             module.zero_grad()
 
-            # print(f"[{module.__class__.__name__}] Gradient reinitialized ✅")
+
 
 
 class Optim:
@@ -121,18 +93,13 @@ class Optim:
         y,
         batch_size: int,
         epochs: int,
-        network: Sequential = None,
-        shuffle: bool = True,
-        seed: int = 42,
     ):
-        if not network:
-            network = self.network
 
         losses = []
         for epoch in trange(epochs):
             loss_sum = 0
 
-            for X_i, y_i in self._create_batches(X, y, batch_size, shuffle, seed):
+            for X_i, y_i in self._create_batches(X, y, batch_size):
                 loss_sum += self.step(X_i, y_i).sum()
 
             losses.append(loss_sum / len(y))
@@ -167,11 +134,8 @@ class Optim:
         scores_train = []
         scores_test = []
 
-
+        batch_progress = tqdm(desc="Batch", position=1, total=len(X_train) // batch_size, mininterval=0.3)
         epoch_progress = tqdm(range(epochs), desc="Epoch", position=0)
-        batch_progress = tqdm(
-            desc="Batch", position=1, total=len(X_train) // batch_size, mininterval=0.3
-        )
         for _ in epoch_progress:
             loss_sum = 0
             batch_iter = self._create_batches(X_train, y_train, batch_size)
