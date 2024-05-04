@@ -27,6 +27,6 @@ class BCELoss(Loss):
         super().__init__()
     
     def forward(self, y, yhat):
-        return -np.mean(y * np.log(np.clip(yhat, 1e-10, 1))+ (1 - y) * np.log(np.clip(1 - yhat, 1e-10, 1)))
+        return -np.mean(y * np.log(np.clip(yhat, 1e-12, 1))+ (1 - y) * np.log(np.clip(1 - yhat, 1e-12, 1)))
     def backward(self, y, yhat):
-        return -(y / np.clip(yhat, 1e-10, 1) - (1 - y) / np.clip(1 - yhat, 1e-10, 1))
+        return -(y / np.clip(yhat, 1e-12, 1) - (1 - y) / np.clip(1 - yhat, 1e-12, 1))
