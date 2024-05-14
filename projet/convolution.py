@@ -127,6 +127,61 @@ class MaxPool1D(Module):
     def update_parameters(self, learning_rate):
         pass  # No parameters to update in MaxPool1D
 
+class AvgPool1D(Module):
+    r"""1D average pooling.
+
+    Parameters
+    ----------
+        k_size : int
+            Size of the convolving kernel.
+        stride : int, optional, default=1
+            Stride of the convolution.
+
+    Shape
+    -----
+    - Input : ndarray (batch, length, chan_in)
+    - Output : ndarray (batch, (length - k_size) // stride + 1, chan_out)
+    """
+
+    def __init__(self, k_size, stride):
+        self.k_size = k_size
+        self.stride = stride
+
+    def forward(self, X):
+        batch_size, length, chan_in = X.shape
+        out_length = (length - self.k_size) // self.stride + 1
+
+        X_view = sliding_window_view(X, (1, self.k_size, 1))[::1, :: self.stride, ::1]
+        X_view = X_view.reshape(batch_size, out_length, chan_in, self.k_size)
+
+        self.output = np.mean(X_view, axis=-1)
+        return self.output
+
+    def zero_grad(self):
+        pass  # No gradient in AvgPool1D
+
+    def backward_update_gradient(self, x, delta):
+        pass  # No gradient to update in AvgPool1D
+
+    def backward_delta(self, input, delta):
+        batch_size, length, chan_in = input.shape
+        out_length = (length - self.k_size) // self.stride + 1
+
+        self.d_out = np.zeros_like(input)
+        delta_repeated = (
+            np.repeat(delta[:, :, np.newaxis], self.k_size, axis=2) / self.k_size
+        )
+
+        for i in range(self.k_size):
+            self.d_out[
+                :, i : i + out_length * self.stride : self.stride
+            ] += delta_repeated[:, :, i]
+
+        return self.d_out
+
+    def update_parameters(self, learning_rate):
+        pass  # No parameters to update in AvgPool1D
+
 class Flatten(Module):
     """Flatten an output.
 
@@ -150,3 +205,4 @@ class Flatten(Module):
 
     def update_parameters(self, learning_rate):
         pass
+
