@@ -1,6 +1,8 @@
 from Module import *
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
+import math
+from copy import deepcopy
 
 class Conv1D(Module):
     def __init__(self,k_size,chan_in,chan_out,stride=1,bias= False):
@@ -181,6 +183,67 @@ class AvgPool1D(Module):
 
     def update_parameters(self, learning_rate):
         pass  # No parameters to update in AvgPool1D
+
+class Conv1DTranspose(Conv1D):
+    def __init__(self, k_size, chan_in, chan_out,stride=1,width=None,height=None, bias=False):
+        self.width=width
+        self.height=height
+        super().__init__(k_size, chan_in, chan_out, stride, bias)
+
+    def compute_dim(self,length):
+        if self.width==None and self.height==None:
+            d = int(math.sqrt(length))
+            assert d ** 2 == length, 'The width and height of the image are not known'
+            self.width = d
+            self.height = d
+
+    def forward(self, X):
+        batch_size, length, chan_in = X.shape
+        self.compute_dim(length)
+        X_transposed = ( X.reshape(batch_size, self.width, self.height, chan_in)
+                .transpose((0, 2, 1, 3))
+                .reshape(batch_size, self.width * self.height, chan_in))
+        return super().forward(X_transposed)
+
+
+    def backward_delta(self, X, delta):
+        batch_size, length, chan_in = X.shape
+        self.compute_dim(length)
+        X_transposed = ( X.reshape(batch_size, self.width, self.height, chan_in)
+                .transpose((0, 2, 1, 3))
+                .reshape(batch_size, self.width * self.height, chan_in))
+        dX = super().backward_delta(X_transposed, delta)
+        return (  dX.reshape(batch_size, self.height, self.width, chan_in)
+                    .transpose((0, 2, 1, 3))
+                    .reshape(batch_size, self.height * self.width, chan_in))
+
+
+class DoubleConv1D(Module):
+    def __init__(self, k_size, chan_in, chan_out, stride=1, width=None, height=None, bias=False):
+        self.conv = Conv1D(k_size, chan_in, chan_out, stride, bias)
+        self.conv_trans = Conv1DTranspose(k_size, chan_in, chan_out, stride, width, height, bias)
+
+    def forward(self, X):
+        self.X = deepcopy(X)
+        Z1 = self.conv.forward(self.X)
+        Z2 = self.conv_trans.forward(self.X)
+        return np.concatenate((Z1, Z2), axis=2)  # Concatenate along the channel dimension
+    
+    def backward_update_gradient(self, X, delta):
+        delta_split = np.split(delta, 2, axis=2)  # Split delta along the channel dimension
+        self.conv.backward_update_gradient(X, delta_split[0])
+        self.conv_trans.backward_update_gradient(X, delta_split[1])
+
+    def backward_delta(self, X, delta):
+        delta_split = np.split(delta, 2, axis=2)  # Split delta along the channel dimension
+        dX1 = self.conv.backward_delta(X, delta_split[0])
+        dX2 = self.conv_trans.backward_delta(X, delta_split[1])
+        dX = (dX1 + dX2) / 2
+        return dX
+    def update_parameters(self, learning_rate):
+        self.conv.update_parameters(learning_rate)
+        self.conv_trans.update_parameters(learning_rate)
+    
 
 class Flatten(Module):
     """Flatten an output.

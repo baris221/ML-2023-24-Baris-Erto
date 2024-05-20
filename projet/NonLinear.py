@@ -65,7 +65,7 @@ class LogSoftmax(Module):
     def backward_update_gradient(self, input, delta):
         pass
     def backward_delta(self, input, delta):
-        softmax = np.exp(self(input))
+        softmax = np.exp(self.forward(input))
         return delta - softmax * np.sum(delta, axis=-1, keepdims=True)
     def update_parameters(self, learning_rate):
         pass  # No parameters to update in LogSoftmax
