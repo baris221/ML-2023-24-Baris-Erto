@@ -22,9 +22,9 @@ class Module(object):
         ## Calcule la passe forward
         pass
 
-    def update_parameters(self, gradient_step=1e-3):
+    def update_parameters(self, learning_rate=1e-3):
         ## Calcule la mise a jour des parametres selon le gradient calcule et le pas de gradient_step
-        self._parameters -= gradient_step*self._gradient
+        self._parameters -= learning_rate*self._gradient
 
     def backward_update_gradient(self, input, delta):
         ## Met a jour la valeur du gradient
